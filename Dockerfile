@@ -1,0 +1,36 @@
+# Dockerfile for Next.js application
+
+# 1. Installer Stage: Install dependencies
+FROM node:20-alpine AS installer
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install
+
+# 2. Builder Stage: Build the Next.js application
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+COPY --from=installer /app/node_modules ./node_modules
+COPY . .
+
+RUN npx prisma generate
+
+RUN npm run build
+
+# 3. Runner Stage: Create the final production image
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+
+RUN npm install --prod
+
+EXPOSE 3000
+
+CMD ["npm", "start"]
