@@ -4,19 +4,30 @@ trigger:
 - main
 
 variables:
+  # Link variable group from the Library
+  - group: dev
+
   # --- Configuración de Docker y Azure ---
-  dockerRegistryServiceConnection: 'ACRConnection'
-  imageRepository: 'frontsoftwareseguro' # Nombre de la imagen en el registro
-  containerRegistry: 'softwareseguro.azurecr.io' # Servidor de tu ACR
-  dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
-  tag: '$(Build.BuildId)'
+  - name: dockerRegistryServiceConnection
+    value: 'ACRConnection'
+  - name: imageRepository
+    value: 'frontsoftwareseguro'
+  - name: containerRegistry
+    value: 'softwareseguro.azurecr.io'
+  - name: dockerfilePath
+    value: '$(Build.SourcesDirectory)/Dockerfile'
+  - name: tag
+    value: '$(Build.BuildId)'
 
   # --- Configuración de la App de Azure ---
-  azureSubscription: '5c9d109b-9f54-4fab-94e6-36ea3326c6ca' # Tu suscripción de Azure
-  webAppName: 'softwareseguro' # Nombre de tu App Service
+  - name: azureSubscription
+    value: '5c9d109b-9f54-4fab-94e6-36ea3326c6ca'
+  - name: webAppName
+    value: 'softwareseguro'
 
   # --- Configuración del Agente del Pipeline ---
-  vmImageName: 'ubuntu-latest'
+  - name: vmImageName
+    value: 'ubuntu-latest'
 
 stages:
 - stage: Build
@@ -36,25 +47,23 @@ stages:
         containerRegistry: $(dockerRegistryServiceConnection)
         tags: |
           $(tag)
+        arguments: '--build-arg DATABASE_URL=$(DATABASE_URL)'
 
 - stage: Deploy
   displayName: 'Deploy to App Service'
   dependsOn: Build
   condition: succeeded()
   jobs:
-  - deployment: Deploy
+  - job: Deploy # Changed from 'deployment' to 'job'
     displayName: 'Deploy App Service'
     pool:
       vmImage: $(vmImageName)
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - task: AzureWebAppContainer@1
-            displayName: 'Deploy to Azure App Service'
-            inputs:
-              azureSubscription: $(azureSubscription)
-              appName: $(webAppName)
-              containerRegistry: $(containerRegistry)
-              repository: $(imageRepository)
-              tag: $(tag)
+    steps:
+    - task: AzureWebAppContainer@1
+      displayName: 'Deploy to Azure App Service'
+      inputs:
+        azureSubscription: $(azureSubscription)
+        appName: $(webAppName)
+        containerRegistry: $(containerRegistry)
+        repository: $(imageRepository)
+        tag: $(tag)

@@ -13,6 +13,11 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 COPY --from=installer /app/node_modules ./node_modules
+# Accept DATABASE_URL as a build argument
+ARG DATABASE_URL
+# Set it as an environment variable for the build process
+ENV DATABASE_URL=$DATABASE_URL
+
 COPY . .
 
 RUN npx prisma generate
