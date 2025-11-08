@@ -23,7 +23,7 @@ variables:
   - name: azureSubscription
     value: '5c9d109b-9f54-4fab-94e6-36ea3326c6ca'
   - name: webAppName
-    value: 'softwareseguro'
+    value: 'softwareseguro-fka4c8h2fchhf5hb'
 
   # --- Configuración del Agente del Pipeline ---
   - name: vmImageName
