@@ -46,7 +46,6 @@ stages:
     displayName: 'Deploy App Service'
     pool:
       vmImage: $(vmImageName)
-    environment: 'production'
     strategy:
       runOnce:
         deploy:
