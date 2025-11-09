@@ -65,4 +65,3 @@ stages:
         azureSubscription: $(azureSubscription)
         appName: $(webAppName)
         imageName: '$(containerRegistry)/$(imageRepository):$(tag)'
-        appSettings: 'WEBSITES_PORT=3000'
