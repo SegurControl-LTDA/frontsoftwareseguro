@@ -29,6 +29,7 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
+ENV DATABASE_URL=$DATABASE_URL
 
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/.next ./.next
