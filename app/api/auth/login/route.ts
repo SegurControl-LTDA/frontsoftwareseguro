@@ -58,13 +58,16 @@ export async function POST(req: Request) {
 
     // 5. Generate JWT
     const token = jwt.sign(
-      { userId: user.id, email: user.email },
+      { userId: user.id, email: user.email, tokenVersion: user.tokenVersion },
       JWT_SECRET,
       { expiresIn: '60m' } // Token expires in 60 minutes
     );
 
     // 6. Set JWT in an HttpOnly, Secure cookie
-    const response = NextResponse.json({ message: 'Inicio de sesión exitoso.' });
+    const response = NextResponse.json({
+      message: 'Inicio de sesión exitoso.',
+      user: { name: user.name, email: user.email },
+    });
     response.cookies.set('auth_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

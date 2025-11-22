@@ -6,11 +6,13 @@ export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [message, setMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setMessage('');
+    setSuccessMessage('');
+    setErrorMessage('');
 
     const response = await fetch('/api/auth/register', {
       method: 'POST',
@@ -23,9 +25,9 @@ export default function RegisterPage() {
     const data = await response.json();
 
     if (response.ok) {
-      setMessage('¡Registro exitoso! Por favor, revisa tu correo para verificar tu cuenta.');
+      setSuccessMessage('¡Registro exitoso! Por favor, revisa la consola del servidor para el enlace de verificación.');
     } else {
-      setMessage(data.error || 'Ocurrió un error durante el registro.');
+      setErrorMessage(data.error || 'Ocurrió un error durante el registro.');
     }
   };
 
@@ -33,7 +35,10 @@ export default function RegisterPage() {
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
         <h1 className="text-2xl font-bold text-center text-gray-900">Crear una cuenta</h1>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        {successMessage ? (
+          <p className="mt-4 text-center text-lg text-green-600">{successMessage}</p>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="name" className="text-sm font-medium text-gray-700">Nombre</label>
             <input
@@ -79,7 +84,8 @@ export default function RegisterPage() {
             </button>
           </div>
         </form>
-        {message && <p className="mt-4 text-center text-sm text-red-600">{message}</p>}
+        )}
+        {errorMessage && <p className="mt-4 text-center text-sm text-red-600">{errorMessage}</p>}
       </div>
     </div>
   );

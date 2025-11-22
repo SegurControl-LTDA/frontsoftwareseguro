@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, TokenType } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -12,44 +12,25 @@ export async function GET(req: Request) {
   }
 
   try {
-    // 1. Find the token in the database
-    const verificationToken = await prisma.verificationToken.findUnique({
-      where: { token },
+    const verificationToken = await prisma.verificationToken.findFirst({
+      where: { token, type: TokenType.EMAIL_VERIFICATION },
     });
 
-    if (!verificationToken) {
-      return NextResponse.json({ error: 'Token inválido.' }, { status: 400 });
+    if (!verificationToken || new Date() > new Date(verificationToken.expires)) {
+      return NextResponse.json({ error: 'Token inválido o expirado.' }, { status: 400 });
     }
 
-    // 2. Check if the token has expired
-    const hasExpired = new Date() > new Date(verificationToken.expires);
-    if (hasExpired) {
-      return NextResponse.json({ error: 'El token ha expirado.' }, { status: 400 });
-    }
-
-    // 3. Find the user associated with the token's email
-    const user = await prisma.user.findUnique({
-      where: { email: verificationToken.email },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'Usuario no encontrado.' }, { status: 404 });
-    }
-
-    // 4. Update the user's email verification status
     await prisma.user.update({
-      where: { id: user.id },
+      where: { id: verificationToken.userId },
       data: { emailVerified: new Date() },
     });
 
-    // 5. Delete the token to ensure it's single-use
-    await prisma.verificationToken.delete({
-      where: { id: verificationToken.id },
-    });
+    await prisma.verificationToken.delete({ where: { id: verificationToken.id } });
 
-    // Redirect user to a success page or login page
-    // For now, we'll return a success message.
-    return NextResponse.json({ message: '¡Correo verificado con éxito!' });
+    // You can redirect to a login page with a success message
+    const url = new URL('/', req.url);
+    url.searchParams.set('verified', 'true');
+    return NextResponse.redirect(url);
 
   } catch (error) {
     console.error('Verification error:', error);

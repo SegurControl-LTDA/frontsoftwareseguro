@@ -34,6 +34,7 @@ ENV DATABASE_URL=$DATABASE_URL
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/node_modules/.prisma/client ./node_modules/.prisma/client
 
 RUN npm install --prod
 

@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { NextResponse, NextRequest } from 'next/server';
+import { PrismaClient, TokenType } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 // Password policy: minimum 8 characters, one uppercase, one lowercase, one number, one special character
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const { name, email, password } = await req.json();
 
@@ -50,9 +50,10 @@ export async function POST(req: Request) {
 
     await prisma.verificationToken.create({
       data: {
-        email,
         token,
         expires,
+        type: TokenType.EMAIL_VERIFICATION,
+        userId: user.id,
       },
     });
 
